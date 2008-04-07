@@ -4,7 +4,7 @@ use Carp qw(croak carp);
 use DBI;
 use parent 'Class::Accessor';
 use vars '$VERSION';
-$VERSION = '0.01';
+$VERSION = '0.02';
 
 =head1 NAME
 
@@ -208,7 +208,7 @@ sub as_text {
 
     require Text::Table;
     my $tmpl = $self->template_data($results);
-    my $table = Text::Table->new( @{$tmpl->{heading}} );
+    my $table = Text::Table->new( @{$tmpl->{headings}} );
     $table->load( @{$tmpl->{rows}} );
 
     "Data anlysis for $tmpl->{table}:\n\n" . $table->table;
@@ -280,7 +280,7 @@ sub template_data {
     $results ||= $self->{results} || $self->run_audit;
     $results = $results->[0];
 
-    my @headings = ('column', @{ $self->traits });
+    my @headings = (@{ $self->traits });
     my @rows;
     for my $column (@{ $self->columns }) {
         my @row = $column;
@@ -299,7 +299,7 @@ sub template_data {
 
     my $res = {
         table => $self->table,
-        headings => \@headings,
+        headings => ['column',@headings],
         rows => \@rows,
     };
 };
