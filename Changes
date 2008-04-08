@@ -1,7 +1,10 @@
+0.03 20080408
+    . Fixed missing prerequisites
+    + Added unquoting of quoted column names
+
 0.02 20080408
-    Fixed embarassing typos. That's what you get when you don't
-    write automated tests for your code.
+    . Fixed embarassing typos. That's what you get when you don't
+      write automated tests for your code.
 
 0.01 20080407
-    Released unto an unsuspecting world
-
+    . Released unto an unsuspecting world

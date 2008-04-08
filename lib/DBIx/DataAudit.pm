@@ -4,7 +4,7 @@ use Carp qw(croak carp);
 use DBI;
 use parent 'Class::Accessor';
 use vars '$VERSION';
-$VERSION = '0.02';
+$VERSION = '0.03';
 
 =head1 NAME
 
@@ -107,7 +107,7 @@ use vars qw'@default_traits %trait_type $trait_inapplicable %sql_type_map';
 %trait_type = (
     min     => ['any','min(%s)'],
     max     => ['any','max(%s)'],
-    count   => ['any','sum(1)'],
+    count   => ['any','count(%s)'],
     values  => ['any','count(distinct %s)'],
     null    => ['any','sum(case when %s is null then 1 else 0 end)'],
     avg     => ['range','avg(%s)'],
@@ -121,11 +121,13 @@ $trait_inapplicable = 'NULL';
 %sql_type_map = (
     BOOLEAN   => 'any',
     INTEGER   => 'range',
-    TINYINT   => 'range',
-    TIMESTAMP => 'range',
+    BIGINT    => 'range',
     DATETIME  => 'range',
     DATE      => 'range',
+    DECIMAL   => 'range',
     TIME      => 'range',
+    TIMESTAMP => 'range',
+    TINYINT   => 'range',
     VARCHAR   => 'string',
     CHAR      => 'string',
     TEXT      => 'string',
@@ -409,6 +411,7 @@ sub get_sql {
     for my $column (@columns) {
         for my $trait (@traits) {
             my $name = "${column}_${trait}";
+            $name =~ s/"//g; # unquote quoted columns
             if ($self->trait_applies( $trait, $column )) {
                 my $tmpl = $trait_type{$trait}->[1];
                 $tmpl =~ s/%s/$column/g;
@@ -418,7 +421,7 @@ sub get_sql {
             };
         };
     };
-    my $statement = sprintf 'SELECT %s FROM %s', join(",", @resultset), $table;
+    my $statement = sprintf "SELECT %s FROM %s\n     ", join("\n    ,", @resultset), $table;
     return $statement
 };
 

@@ -5,7 +5,7 @@ use Getopt::Long;
 use Pod::Usage;
 
 use vars '$VERSION';
-$VERSION = '0.02';
+$VERSION = '0.03';
 
 GetOptions(
   'format|f:s' => \my $format,
@@ -36,6 +36,9 @@ my $method = $method{$format} || 'as_text';
 
 for my $table (@tables) {
     my $audit = DBIx::DataAudit->audit( dsn => $dsn, table => $table, traits => \@traits );
+    if ($verbose) {
+        warn $audit->get_sql . "\n";
+    };
     print $audit->$method;
 };
 
