@@ -4,7 +4,7 @@ use Carp qw(croak carp);
 use DBI;
 use parent 'Class::Accessor';
 use vars '$VERSION';
-$VERSION = '0.03';
+$VERSION = '0.04';
 
 =head1 NAME
 
@@ -36,17 +36,14 @@ about the columns in a single full table scan.
 =head1 COLUMN TRAITS
 
 You can specify which information is collected about every column by specifying the traits.
+The hierarchy of traits is as follows:
+
+  any < ordered < numeric 
+                < string
+
 The following traits are collected for every column by default:
 
 =over 4
-
-=item * C<min>
-
-Minimum value for the column
-
-=item * C<max>
-
-Maximum value for the column
 
 =item * C<total>
 
@@ -62,7 +59,21 @@ Number of C<NULL> values for the column
 
 =back
 
-For columns that are recognized as numerical, the following additional traits are collected:
+For columns that are recognized as ordered, the following additional traits are collected:
+
+=over 4
+
+=item * C<min>
+
+Minimum value for the column
+
+=item * C<max>
+
+Maximum value for the column
+
+=back
+
+For columns that are recognized as numeric, the following additional traits are collected:
 
 =over 4
 
@@ -105,12 +116,12 @@ use vars qw'@default_traits %trait_type $trait_inapplicable %sql_type_map';
 @default_traits = qw[min max count null avg blank empty missing];
 
 %trait_type = (
-    min     => ['any','min(%s)'],
-    max     => ['any','max(%s)'],
     count   => ['any','count(%s)'],
     values  => ['any','count(distinct %s)'],
     null    => ['any','sum(case when %s is null then 1 else 0 end)'],
-    avg     => ['range','avg(%s)'],
+    min     => ['ordered','min(%s)'],
+    max     => ['ordered','max(%s)'],
+    avg     => ['numeric','avg(%s)'],
     blank   => ['string',"sum(case when trim(%s)='' then 1 else 0 end)"],
     empty   => ['string',"sum(case when %s='' then 1 else 0 end)"],
     missing => ['string',"sum(case when trim(%s)='' then 1 when %s is null then 1 else 0 end)"],
@@ -119,18 +130,23 @@ use vars qw'@default_traits %trait_type $trait_inapplicable %sql_type_map';
 $trait_inapplicable = 'NULL';
 
 %sql_type_map = (
+    BIGINT    => 'numeric',
     BOOLEAN   => 'any',
-    INTEGER   => 'range',
-    BIGINT    => 'range',
-    DATETIME  => 'range',
-    DATE      => 'range',
-    DECIMAL   => 'range',
-    TIME      => 'range',
-    TIMESTAMP => 'range',
-    TINYINT   => 'range',
-    VARCHAR   => 'string',
     CHAR      => 'string',
+    'CHARACTER VARYING'      => 'string',
+    DATETIME  => 'ordered',
+    DATE      => 'ordered',
+    DECIMAL   => 'numeric',
+    ENUM      => 'string',
+    INET      => 'any',
+    INTEGER   => 'numeric',
+    INT       => 'numeric',
     TEXT      => 'string',
+    TIME      => 'ordered',
+    'TIMESTAMP WITHOUT TIME ZONE' => 'ordered',
+    TIMESTAMP => 'ordered',
+    TINYINT   => 'numeric',
+    VARCHAR   => 'string',
 );
 
 =head1 METHODS
@@ -190,7 +206,6 @@ sub audit {
     my $self = \%args;
     bless $self => $class;
     $self->{columns} ||= [$self->get_columns];
-    use Data::Dumper;
     if (! @{ $self->{columns}}) {
         croak "Couldn't retrieve column information for table '$args{table}'. Does your DBD implement ->column_info?";
     };
@@ -199,7 +214,7 @@ sub audit {
     $self
 };
 
-=head2 C<< __PACKAGE__->as_text RESULTS >>
+=head2 C<< $audit->as_text RESULTS >>
 
 Returns a table drawn as text with the results.
 
@@ -209,14 +224,14 @@ sub as_text {
     my ($self,$results) = @_;
 
     require Text::Table;
-    my $tmpl = $self->template_data($results);
-    my $table = Text::Table->new( @{$tmpl->{headings}} );
-    $table->load( @{$tmpl->{rows}} );
+    my $data = $self->template_data($results);
+    my $table = Text::Table->new( @{$data->{headings}} );
+    $table->load( @{$data->{rows}} );
 
-    "Data anlysis for $tmpl->{table}:\n\n" . $table->table;
+    "Data analysis for $data->{table}:\n\n" . $table->table;
 };
 
-=head2 C<< __PACKAGE__->as_html RESULTS, TEMPLATE >>
+=head2 C<< $audit->as_html RESULTS, TEMPLATE >>
 
 Returns a HTML page with the results.
 
@@ -248,13 +263,14 @@ sub as_html {
 TEMPLATE
 
     my $t = Template->new();
+    my $data = $self->template_data($results);
 
-    $t->process(\$template,$self->template_data($results),\my $result)
+    $t->process(\$template,$data,\my $result)
         || croak $t->error;
     $result
 };
 
-=head2 C<< __PACKAGE__->template_data >>
+=head2 C<< $audit->template_data >>
 
 Returns a hash with the following three keys, suitable
 for using with whatever templating system you have:
@@ -280,14 +296,14 @@ C<rows> - the values of the traits of every column
 sub template_data {
     my ($self,$results) = @_;
     $results ||= $self->{results} || $self->run_audit;
-    $results = $results->[0];
+    my @results = @{ $results->[0] };
 
     my @headings = (@{ $self->traits });
     my @rows;
     for my $column (@{ $self->columns }) {
         my @row = $column;
         for my $trait (@headings) {
-            my $val = shift @$results;
+            my $val = shift @results;
             if (defined $val) {
                 if (length($val) > 20) {
                     $val = substr($val,0,20);
@@ -306,7 +322,7 @@ sub template_data {
     };
 };
 
-=head2 C<< __PACKAGE__->run_audit >>
+=head2 C<< $audit->run_audit >>
 
 Actually runs the SQL in the database.
 
@@ -319,9 +335,9 @@ sub run_audit {
     $self->{results} = $self->dbh->selectall_arrayref($sql,{});
 };
 
-=head2 C<< __PACKAGE__->column_type COLUMN >>
+=head2 C<< $audit->column_type COLUMN >>
 
-Returns the type for the column. The three valid types are C<any>, C<range> and C<string>.
+Returns the type for the column. The four valid types are C<any>, C<ordered>, C<numeric> and C<string>.
 
 =cut
 
@@ -336,7 +352,7 @@ sub column_type {
     } grep { $_->{COLUMN_NAME} eq $column } @$info;
 };
 
-=head2 C<< __PACKAGE__->get_columns TABLE >>
+=head2 C<< $audit->get_columns TABLE >>
 
 Returns the names of the columns for the table C<TABLE>.
 By default, the value of C<TABLE> will be taken from the value
@@ -351,12 +367,18 @@ sub get_columns {
         $self->{column_info} = $self->collect_column_info;
     };
     my $info = $self->{column_info};
+    my @sorted = @$info;
+
+    # Order the columns in the "right" order, if possible
+    if (exists $sorted[0]->{ORDINAL_POSITION} && defined $sorted[0]->{ORDINAL_POSITION}) {
+        @sorted = sort { $a->{ORDINAL_POSITION} <=> $b->{ORDINAL_POSITION} } @sorted;
+    };
     map {
         $_->{COLUMN_NAME};
-    } @$info;
+    } @sorted;
 };
 
-=head2 C<< __PACKAGE__->collect_column_info TABLE >>
+=head2 C<< $audit->collect_column_info TABLE >>
 
 Collects the information about the columns for the table C<TABLE>
 from the DBI. By default, C<TABLE> will be taken from the
@@ -377,12 +399,22 @@ sub collect_column_info {
     my ($self,$table) = @_;
     $table ||= $self->table;
     my $sth = $self->dbh->column_info(undef,undef,$self->table,$_);
+    if (! $sth) {
+        croak "Couldn't collect column information for table '$table'. Does your DBD implement ->column_info?";
+    };
     my $info = $sth->fetchall_arrayref({});
 
     for my $i (@$info) {
         my $sqltype = $i->{TYPE_NAME} = uc $i->{TYPE_NAME};
+
+	# Fix for Pg - convert enum types to "ENUM":
+	if (exists $i->{pg_enum_values}) {
+            $sqltype = 'ENUM';
+	};
+
         if (not exists $sql_type_map{ $sqltype }) {
-            warn sprintf q{Unknown SQL data type '%s' for column "%s.%s"; some traits will be unavailable\n}, $sqltype, $table, $i->{COLUMN_NAME};
+            warn sprintf q{Unknown SQL data type '%s' for column "%s.%s"; some traits will be unavailable\n},
+	        $sqltype, $table, $i->{COLUMN_NAME};
         };
         $i->{trait_type} = $sql_type_map{ $sqltype } || 'any';
     };
@@ -390,7 +422,7 @@ sub collect_column_info {
     $info
 };
 
-=head2 C<< __PACKAGE__->get_sql TABLE >>
+=head2 C<< $audit->get_sql TABLE >>
 
 Creates the SQL statement to collect the information.
 The default value for C<TABLE> will be the table passed
@@ -425,7 +457,7 @@ sub get_sql {
     return $statement
 };
 
-=head2 C<< __PACKAGE__->trait_applies TRAIT, COLUMN >>
+=head2 C<< $audit->trait_applies TRAIT, COLUMN >>
 
 Checks whether a trait applies to a column.
 

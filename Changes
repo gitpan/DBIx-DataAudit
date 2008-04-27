@@ -1,6 +1,19 @@
+0.04 20080427
+    . Changed documentation to indicate class vs. instance methods
+    + Use ORDINAL_POSITION for ordering of columns where possible
+      (suggested by David Steinbrunner)
+    + Guess ENUM types when using Postgres
+      (suggested by David Steinbrunner)
+    + Better discrimination between types - this reduces information
+      on less discriminate DBs like SQLite but should make things
+      work on Pg.
+      Maybe this feature will be disabled unless you're using Pg
+      to provide a maximum of information no matter how useless
+      it may appear. avg(DATETIME) does not really make sense.
+
 0.03 20080408
     . Fixed missing prerequisites
-    + Added unquoting of quoted column names
+    + Added unquoting of quoted column names (patch by Erik Rijkers)
 
 0.02 20080408
     . Fixed embarassing typos. That's what you get when you don't
