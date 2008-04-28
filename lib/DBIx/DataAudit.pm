@@ -4,7 +4,7 @@ use Carp qw(croak carp);
 use DBI;
 use parent 'Class::Accessor';
 use vars '$VERSION';
-$VERSION = '0.04';
+$VERSION = '0.05';
 
 =head1 NAME
 
@@ -111,7 +111,7 @@ are defined. Read the source to find their names.
 
 =cut
 
-use vars qw'@default_traits %trait_type $trait_inapplicable %sql_type_map';
+use vars qw'@default_traits %trait_type %trait_hierarchy $trait_inapplicable %sql_type_map';
 
 @default_traits = qw[min max count null avg blank empty missing];
 
@@ -127,6 +127,13 @@ use vars qw'@default_traits %trait_type $trait_inapplicable %sql_type_map';
     missing => ['string',"sum(case when trim(%s)='' then 1 when %s is null then 1 else 0 end)"],
 );
 
+%trait_hierarchy = (
+    any => [],
+    ordered => ['any'],
+    numeric => ['ordered','any'],
+    string  => ['ordered','any'],
+);
+
 $trait_inapplicable = 'NULL';
 
 %sql_type_map = (
@@ -137,7 +144,7 @@ $trait_inapplicable = 'NULL';
     DATETIME  => 'ordered',
     DATE      => 'ordered',
     DECIMAL   => 'numeric',
-    ENUM      => 'string',
+    ENUM      => 'ordered',
     INET      => 'any',
     INTEGER   => 'numeric',
     INT       => 'numeric',
@@ -408,7 +415,7 @@ sub collect_column_info {
         my $sqltype = $i->{TYPE_NAME} = uc $i->{TYPE_NAME};
 
 	# Fix for Pg - convert enum types to "ENUM":
-	if (exists $i->{pg_enum_values}) {
+	if (exists $i->{pg_enum_values} && defined $i->{pg_enum_values}) {
             $sqltype = 'ENUM';
 	};
 
@@ -481,7 +488,9 @@ sub trait_applies {
     return 1 if ($trait_type eq 'any');
 
     (my $type) = $self->column_type($column);
-    return $trait_type eq $type;
+    my @subtypes = $trait_hierarchy{ $type };
+
+    return scalar grep { $trait_type eq $_ } ($type,@subtypes);
 };
 
 =head1 COMMAND LINE USAGE
