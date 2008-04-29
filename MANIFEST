@@ -8,6 +8,7 @@ MANIFEST.skip
 t/00-bin.t
 t/00-use.t
 t/01-sqlite.t
+t/01-hierarchy.t
 t/99-manifest.t
 t/99-pod.t
 t/99-todo.t

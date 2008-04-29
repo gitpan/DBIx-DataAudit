@@ -38,21 +38,21 @@ is_deeply $info, {
     table => 'test',
     headings => [qw[column min max count null avg blank empty missing]],
     rows  => [
-        ['c_bigint',  'n/a', 'n/a', '2', '0', '5', 'n/a', 'n/a', 'n/a' ],
+        ['c_bigint',  '0', '10', '2', '0', '5', 'n/a', 'n/a', 'n/a' ],
         ['c_boolean', 'n/a', 'n/a', '2', '0', 'n/a', 'n/a', 'n/a', 'n/a' ],
-	['c_char',    'n/a', 'n/a', '2', '0', 'n/a', '0',   '0',   '0' ],
-	['c_character_varying',    'n/a', 'n/a', '2', '0', 'n/a', '0',   '0',   '0' ],
+	['c_char',    'A', 'Z', '2', '0', 'n/a', '0',   '0',   '0' ],
+	['c_character_varying',    'A', 'Z', '2', '0', 'n/a', '0',   '0',   '0' ],
         ['c_datetime', '2008-01-01 00:00:01', '2008-04-01 00:10:01', '2', '0', 'n/a', 'n/a', 'n/a', 'n/a' ],
         ['c_date', '2008-01-01', '2008-04-01', '2', '0', 'n/a', 'n/a', 'n/a', 'n/a' ],
-        ['c_decimal', 'n/a', 'n/a', '2', '0', '5', 'n/a', 'n/a', 'n/a' ],
+        ['c_decimal', '0', '10', '2', '0', '5', 'n/a', 'n/a', 'n/a' ],
         ['c_inet', 'n/a', 'n/a', '2', '0', 'n/a', 'n/a', 'n/a', 'n/a' ],
-        ['c_integer', 'n/a', 'n/a', '2', '0', '5', 'n/a', 'n/a', 'n/a' ],
-        ['c_int', 'n/a', 'n/a', '2', '0', '5', 'n/a', 'n/a', 'n/a' ],
-        ['c_text', 'n/a', 'n/a', '2', '0', 'n/a', '0', '0', '0' ],
+        ['c_integer', '0', '10', '2', '0', '5', 'n/a', 'n/a', 'n/a' ],
+        ['c_int', '0', '10', '2', '0', '5', 'n/a', 'n/a', 'n/a' ],
+        ['c_text', 'A', 'Z', '2', '0', 'n/a', '0', '0', '0' ],
         ['c_time', '00:00:01', '00:10:01', '2', '0', 'n/a', 'n/a', 'n/a', 'n/a' ],
         ['c_timestamp', '2008-01-01 00:00:01', '2008-04-01 00:10:01', '2', '0', 'n/a', 'n/a', 'n/a', 'n/a' ],
-        ['c_tinyint', 'n/a', 'n/a', '2', '0', '5', 'n/a', 'n/a', 'n/a' ],
-        ['c_varchar', 'n/a', 'n/a', '2', '0', 'n/a', '0', '0', '0' ]
+        ['c_tinyint', '0', '10', '2', '0', '5', 'n/a', 'n/a', 'n/a' ],
+        ['c_varchar', 'A', 'Z', '2', '0', 'n/a', '0', '0', '0' ]
     ]
 }, 'Expected information retrieved' or diag Dumper $info;
 
@@ -96,7 +96,7 @@ INSERT INTO test (c_bigint,c_boolean,c_char,c_character_varying,c_datetime,c_dat
     c_inet, c_integer, c_int, c_text, c_time, c_timestamp, c_tinyint, c_varchar
 )
 VALUES (
-    10,10,'A','A','2008-04-01 00:10:01','2008-04-01',10.00,
+    10,10,'Z','Z','2008-04-01 00:10:01','2008-04-01',10.00,
     '192.168.0.254',10,10,'Z','00:10:01','2008-04-01 00:10:01',10,'Z'
 );
 

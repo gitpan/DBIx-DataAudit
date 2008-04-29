@@ -1,3 +1,7 @@
+0.06 20080429
+    . Fixed embarrassing bug, reported by David Steinbrunner
+    . Added test against that bug
+
 0.05 20080428
     . Pg bugfixes - ENUM should now be treated differently from a string
     . The trait hierarchy should now work

@@ -4,7 +4,7 @@ use Carp qw(croak carp);
 use DBI;
 use parent 'Class::Accessor';
 use vars '$VERSION';
-$VERSION = '0.05';
+$VERSION = '0.06';
 
 =head1 NAME
 
@@ -488,7 +488,7 @@ sub trait_applies {
     return 1 if ($trait_type eq 'any');
 
     (my $type) = $self->column_type($column);
-    my @subtypes = $trait_hierarchy{ $type };
+    my @subtypes = @{ $trait_hierarchy{ $type } };
 
     return scalar grep { $trait_type eq $_ } ($type,@subtypes);
 };
