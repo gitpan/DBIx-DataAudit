@@ -4,7 +4,7 @@ use Carp qw(croak carp);
 use DBI;
 use parent 'Class::Accessor';
 use vars '$VERSION';
-$VERSION = '0.06';
+$VERSION = '0.07';
 
 =head1 NAME
 
@@ -113,18 +113,20 @@ are defined. Read the source to find their names.
 
 use vars qw'@default_traits %trait_type %trait_hierarchy $trait_inapplicable %sql_type_map';
 
-@default_traits = qw[min max count null avg blank empty missing];
+@default_traits = qw[min max count values null avg blank empty missing ];
 
 %trait_type = (
-    count   => ['any','count(%s)'],
-    values  => ['any','count(distinct %s)'],
-    null    => ['any','sum(case when %s is null then 1 else 0 end)'],
-    min     => ['ordered','min(%s)'],
-    max     => ['ordered','max(%s)'],
-    avg     => ['numeric','avg(%s)'],
-    blank   => ['string',"sum(case when trim(%s)='' then 1 else 0 end)"],
-    empty   => ['string',"sum(case when %s='' then 1 else 0 end)"],
-    missing => ['string',"sum(case when trim(%s)='' then 1 when %s is null then 1 else 0 end)"],
+    count    => ['any','count(%s)'],
+    values   => ['any','count(distinct %s)'],
+    null     => ['any','sum(case when %s is null then 1 else 0 end)'],
+    min      => ['ordered','min(%s)'],
+    max      => ['ordered','max(%s)'],
+    avg      => ['numeric','avg(%s)'],
+    #modus   => ['any','sum(1)group by %s'], # find the element that occurs the most
+    # Possibly with only a single table scan
+    blank    => ['string',"sum(case when trim(%s)='' then 1 else 0 end)"],
+    empty    => ['string',"sum(case when %s='' then 1 else 0 end)"],
+    missing  => ['string',"sum(case when trim(%s)='' then 1 when %s is null then 1 else 0 end)"],
 );
 
 %trait_hierarchy = (
@@ -148,11 +150,14 @@ $trait_inapplicable = 'NULL';
     INET      => 'any',
     INTEGER   => 'numeric',
     INT       => 'numeric',
+    NUMERIC   => 'numeric',
+    SMALLINT  => 'numeric',
     TEXT      => 'string',
     TIME      => 'ordered',
     'TIMESTAMP WITHOUT TIME ZONE' => 'ordered',
     TIMESTAMP => 'ordered',
     TINYINT   => 'numeric',
+    'UNSIGNED BIGINT'    => 'numeric',
     VARCHAR   => 'string',
 );
 
@@ -392,8 +397,12 @@ from the DBI. By default, C<TABLE> will be taken from the
 value passed to the constructor C<audit>.
 
 If your database driver does not implement the C<< ->column_info >>
-method (like L<DBD::SQLite>), you are out of luck. See L<Fey::Loader::SQLite>
-and CPAN RT Ticket #13631 for a fix for SQLite.
+method you are out of luck. A fatal error is raised by this method
+if C<< ->column_info >> does not return anything.
+
+For SQLite, L<DBD::SQLite::Amalgamation> v3.6.1.2 includes the patch from 
+L<Fey::Loader::SQLite>, so if you want to use DBIx::DataAudit with
+SQLite, consider upgrading to DBD::SQLite::Amalgamation.
 
 This method will raise warnings if it encounters a data type that
 it doesn't know yet. You can either patch the
@@ -414,10 +423,10 @@ sub collect_column_info {
     for my $i (@$info) {
         my $sqltype = $i->{TYPE_NAME} = uc $i->{TYPE_NAME};
 
-	# Fix for Pg - convert enum types to "ENUM":
-	if (exists $i->{pg_enum_values} && defined $i->{pg_enum_values}) {
-            $sqltype = 'ENUM';
-	};
+        # Fix for Pg - convert enum types to "ENUM":
+        if (exists $i->{pg_enum_values} && defined $i->{pg_enum_values}) {
+                $sqltype = 'ENUM';
+        };
 
         if (not exists $sql_type_map{ $sqltype }) {
             warn sprintf q{Unknown SQL data type '%s' for column "%s.%s"; some traits will be unavailable\n},

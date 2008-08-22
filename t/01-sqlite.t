@@ -36,23 +36,24 @@ isa_ok $result, 'DBIx::DataAudit';
 my $info = $result->template_data;
 is_deeply $info, {
     table => 'test',
-    headings => [qw[column min max count null avg blank empty missing]],
+    headings => [qw[column min max count values null avg blank empty missing ]],
     rows  => [
-        ['c_bigint',  '0', '10', '2', '0', '5', 'n/a', 'n/a', 'n/a' ],
-        ['c_boolean', 'n/a', 'n/a', '2', '0', 'n/a', 'n/a', 'n/a', 'n/a' ],
-	['c_char',    'A', 'Z', '2', '0', 'n/a', '0',   '0',   '0' ],
-	['c_character_varying',    'A', 'Z', '2', '0', 'n/a', '0',   '0',   '0' ],
-        ['c_datetime', '2008-01-01 00:00:01', '2008-04-01 00:10:01', '2', '0', 'n/a', 'n/a', 'n/a', 'n/a' ],
-        ['c_date', '2008-01-01', '2008-04-01', '2', '0', 'n/a', 'n/a', 'n/a', 'n/a' ],
-        ['c_decimal', '0', '10', '2', '0', '5', 'n/a', 'n/a', 'n/a' ],
-        ['c_inet', 'n/a', 'n/a', '2', '0', 'n/a', 'n/a', 'n/a', 'n/a' ],
-        ['c_integer', '0', '10', '2', '0', '5', 'n/a', 'n/a', 'n/a' ],
-        ['c_int', '0', '10', '2', '0', '5', 'n/a', 'n/a', 'n/a' ],
-        ['c_text', 'A', 'Z', '2', '0', 'n/a', '0', '0', '0' ],
-        ['c_time', '00:00:01', '00:10:01', '2', '0', 'n/a', 'n/a', 'n/a', 'n/a' ],
-        ['c_timestamp', '2008-01-01 00:00:01', '2008-04-01 00:10:01', '2', '0', 'n/a', 'n/a', 'n/a', 'n/a' ],
-        ['c_tinyint', '0', '10', '2', '0', '5', 'n/a', 'n/a', 'n/a' ],
-        ['c_varchar', 'A', 'Z', '2', '0', 'n/a', '0', '0', '0' ]
+        ['c_bigint',  '1', '10', '3', '2', '0', '7', 'n/a', 'n/a', 'n/a' ],
+        ['c_boolean', 'n/a', 'n/a', '3', '2', '0', 'n/a', 'n/a', 'n/a', 'n/a' ],
+	['c_char',    'A', 'Z', '3', '2', '0', 'n/a', '0',   '0',   '0' ],
+	['c_character_varying',    'A', 'Z', '3', '2', '0', 'n/a', '0',   '0',   '0' ],
+        ['c_datetime', '2008-01-01 00:00:01', '2008-04-01 00:10:01', '3', '2', '0', 'n/a', 'n/a', 'n/a', 'n/a' ],
+        ['c_date', '2008-01-01', '2008-04-01', '3', '2', '0', 'n/a', 'n/a', 'n/a', 'n/a' ],
+        ['c_decimal', '1', '10', '3', '2', '0', '7', 'n/a', 'n/a', 'n/a' ],
+        ['c_inet', 'n/a', 'n/a', '3', '2', '0', 'n/a', 'n/a', 'n/a', 'n/a' ],
+        ['c_integer', '1', '10', '3', '2', '0', '7', 'n/a', 'n/a', 'n/a' ],
+        ['c_int', '1', '10', '3', '2', '0', '7', 'n/a', 'n/a', 'n/a' ],
+        ['c_smallint', '1', '10', '3', '2', '0', '7', 'n/a', 'n/a', 'n/a' ],
+        ['c_text', 'A', 'Z', '3', '2', '0', 'n/a', '0', '0', '0' ],
+        ['c_time', '00:00:01', '00:10:01', '3', '2', '0', 'n/a', 'n/a', 'n/a', 'n/a' ],
+        ['c_timestamp', '2008-01-01 00:00:01', '2008-04-01 00:10:01', '3', '2', '0', 'n/a', 'n/a', 'n/a', 'n/a' ],
+        ['c_tinyint', '1', '10', '3', '2', '0', '7', 'n/a', 'n/a', 'n/a' ],
+        ['c_varchar', 'A', 'Z', '3', '2', '0', 'n/a', '0', '0', '0' ]
     ]
 }, 'Expected information retrieved' or diag Dumper $info;
 
@@ -74,6 +75,7 @@ create table test (
     c_inet INET,
     c_integer INTEGER,
     c_int INT,
+    c_smallint SMALLINT,
     c_text TEXT,
     c_time TIME,
     -- 'TIMESTAMP WITHOUT TIME ZONE' ,
@@ -84,19 +86,28 @@ create table test (
 
 -- minima
 INSERT INTO test (c_bigint,c_boolean,c_char,c_character_varying,c_datetime,c_date,c_decimal,
-    c_inet, c_integer, c_int, c_text, c_time, c_timestamp, c_tinyint, c_varchar
+    c_inet, c_integer, c_int, c_smallint, c_text, c_time, c_timestamp, c_tinyint, c_varchar
 )
 VALUES (
-    0,0,'A','A','2008-01-01 00:00:01','2008-01-01',0.00,
-    '192.168.0.1',0,0,'A','00:00:01','2008-01-01 00:00:01',0,'A'
+    1,1,'A','A','2008-01-01 00:00:01','2008-01-01',1.00,
+    '192.168.0.1',1,1,1,'A','00:00:01','2008-01-01 00:00:01',1,'A'
 );
 
 -- maxima
 INSERT INTO test (c_bigint,c_boolean,c_char,c_character_varying,c_datetime,c_date,c_decimal,
-    c_inet, c_integer, c_int, c_text, c_time, c_timestamp, c_tinyint, c_varchar
+    c_inet, c_integer, c_int, c_smallint, c_text, c_time, c_timestamp, c_tinyint, c_varchar
 )
 VALUES (
     10,10,'Z','Z','2008-04-01 00:10:01','2008-04-01',10.00,
-    '192.168.0.254',10,10,'Z','00:10:01','2008-04-01 00:10:01',10,'Z'
+    '192.168.0.254',10,10,10,'Z','00:10:01','2008-04-01 00:10:01',10,'Z'
+);
+
+-- duplicate maxima
+INSERT INTO test (c_bigint,c_boolean,c_char,c_character_varying,c_datetime,c_date,c_decimal,
+    c_inet, c_integer, c_int, c_smallint, c_text, c_time, c_timestamp, c_tinyint, c_varchar
+)
+VALUES (
+    10,10,'Z','Z','2008-04-01 00:10:01','2008-04-01',10.00,
+    '192.168.0.254',10,10,10,'Z','00:10:01','2008-04-01 00:10:01',10,'Z'
 );
 

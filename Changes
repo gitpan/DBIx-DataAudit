@@ -1,3 +1,10 @@
+0.07 20080822
+    . Added NUMERIC and UNSIGNED BIGINT as types
+    . Added SMALLINT as type
+      (suggested by David Steinbrunner)
+    . Added C<values> column that counts the number of different values per column
+      (suggested by David Steinbrunner)
+
 0.06 20080429
     . Fixed embarrassing bug, reported by David Steinbrunner
     . Added test against that bug
