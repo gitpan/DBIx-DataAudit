@@ -4,7 +4,7 @@ use Test::More;
 use Data::Dumper;
 use DBI;
 
-my $have_sqlite = eval 'require DBD::SQLite; 1';
+my $have_sqlite = eval 'require DBD::SQLite 1.14; 1';
 if (! $have_sqlite) {
     plan skip_all => "DBD::SQLite not installed";
     exit 0;
