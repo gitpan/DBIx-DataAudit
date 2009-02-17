@@ -4,7 +4,7 @@ use Carp qw(croak carp);
 use DBI;
 use parent 'Class::Accessor';
 use vars '$VERSION';
-$VERSION = '0.08';
+$VERSION = '0.09';
 
 =head1 NAME
 
@@ -414,7 +414,11 @@ to me to add the type and its interpretation.
 sub collect_column_info {
     my ($self,$table) = @_;
     $table ||= $self->table;
-    my $sth = $self->dbh->column_info(undef,undef,$self->table,$_);
+    my $schema;
+    if ($table =~ s/^(.*)\.//) {
+        $schema = $1;
+    };
+    my $sth = $self->dbh->column_info(undef,$schema,$table,$_);
     if (! $sth) {
         croak "Couldn't collect column information for table '$table'. Does your DBD implement ->column_info?";
     };

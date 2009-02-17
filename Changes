@@ -1,4 +1,9 @@
-0.08 2008xxxx
+0.09 20090217
+    + Added schema support. Supply "schema.tablename" if you want to
+      specify a schema
+    . Fixed passing of table to ->get_column_info
+
+0.08 20080822
     . Fixed t/01-sqlite.t to require DBD::SQLite 1.14 at minimum
       before it runs its tests, because the SQL trim() funciton is needed
 

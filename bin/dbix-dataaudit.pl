@@ -5,7 +5,7 @@ use Getopt::Long;
 use Pod::Usage;
 
 use vars '$VERSION';
-$VERSION = '0.08';
+$VERSION = '0.09';
 
 GetOptions(
   'format|f:s' => \my $format,
