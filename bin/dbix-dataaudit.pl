@@ -5,18 +5,18 @@ use Getopt::Long;
 use Pod::Usage;
 
 use vars '$VERSION';
-$VERSION = '0.09';
+$VERSION = '0.11';
 
 GetOptions(
   'format|f:s' => \my $format,
-  'dsn:s'        => \my $dsn,
+  'dsn:s'      => \my $dsn,
+  'outname|o:s'=> \my $outname,
   'verbose|v'  => \my $verbose,
   'help|h'     => \my $display_help,
   'man'        => \my $display_man,
 ) or pod2usage(2);
 pod2usage(1) if $display_help;
 pod2usage(-verbose => 2) if $display_man;
-
 
 $format ||= 'text';
 my ($table,$traits) = @ARGV;
@@ -29,18 +29,35 @@ die "No table name given.\n"
     unless @tables;
 
 my %method = (
-    'text' => 'as_text',
-    'html' => 'as_html',
+    'text' => sub { $_[0]->as_text },
+    'html' => sub { $_[0]->as_html },
+    'xls'  => \&output_xls,
 );
-my $method = $method{$format} || 'as_text';
+
+my $wb;
+sub output_xls {
+    require Spreadsheet::WriteExcel;
+    my ($audit) = @_;
+    $outname ||= 'dataaudit.xls';
+
+    $wb ||= Spreadsheet::WriteExcel->new($outname);
+
+    my $data = $audit->template_data();
+
+    (my $name = $data->{table}) =~ s/^\w+\.//;
+    my $ws = $wb->add_worksheet($name);
+    $ws->write_row(0,0,$data->{headings});
+    $ws->write_col(1,0,$data->{rows});
+};
 
 for my $table (@tables) {
     my $audit = DBIx::DataAudit->audit( dsn => $dsn, table => $table, traits => \@traits );
     if ($verbose) {
         warn $audit->get_sql . "\n";
     };
-    print $audit->$method;
+    print $method{$format}->($audit);
 };
+
 
 __END__
 
@@ -54,7 +71,7 @@ dbix-audit.pl [options] tables traits
 
 Options:
 
-  --format  output format (text or html)
+  --format  output format (text,xls or html)
   --dsn     DBI dsn to connect to
   --help    help message
   --man     full documentation

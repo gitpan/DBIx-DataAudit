@@ -4,9 +4,9 @@ use Test::More;
 use Data::Dumper;
 use DBI;
 
-my $have_sqlite = eval 'require DBD::SQLite 1.14; 1';
+my $have_sqlite = eval 'require DBD::SQLite; $DBD::SQLite::VERSION >= 1.14 or die "DBD::SQLite::VERSION is $DBD::SQLite::VERSION, we need 1.14+"; 1';
 if (! $have_sqlite) {
-    plan skip_all => "DBD::SQLite not installed";
+    plan skip_all => "DBD::SQLite not installed ($@)";
     exit 0;
 };
 

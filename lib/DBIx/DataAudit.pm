@@ -4,7 +4,7 @@ use Carp qw(croak carp);
 use DBI;
 use parent 'Class::Accessor';
 use vars '$VERSION';
-$VERSION = '0.09';
+$VERSION = '0.11';
 
 =head1 NAME
 
@@ -565,7 +565,7 @@ Max Maischein C<corion@cpan.org>
 
 =head1 COPYRIGHT (c)
 
-Copyright 2008 by Max Maischein C<corion@cpan.org>.
+Copyright 2008-2009 by Max Maischein C<corion@cpan.org>.
 
 =head1 LICENSE
 

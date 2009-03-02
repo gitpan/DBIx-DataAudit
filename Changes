@@ -1,3 +1,11 @@
+0.11 20090302
+    + Corrected minimum parent.pm version
+    + Fixed typos in bin/dbix-dataaudit.pl
+    + Enabled t/01-sqlite.t
+
+0.10 20090218
+    + Added Excel-output to dbix-dataaudit script
+
 0.09 20090217
     + Added schema support. Supply "schema.tablename" if you want to
       specify a schema
