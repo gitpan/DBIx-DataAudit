@@ -4,7 +4,7 @@ use Carp qw(croak carp);
 use DBI;
 use parent 'Class::Accessor';
 use vars '$VERSION';
-$VERSION = '0.11';
+$VERSION = '0.12';
 
 =head1 NAME
 
@@ -167,7 +167,7 @@ The class implements the following methods:
 
 =cut
 
-__PACKAGE__->mk_accessors(qw(table dbh dsn columns traits results));
+__PACKAGE__->mk_accessors(qw(table dbh dsn columns traits results where));
 
 =head2 C<< __PACKAGE__->audit ARGS >>
 
@@ -473,7 +473,8 @@ sub get_sql {
             };
         };
     };
-    my $statement = sprintf "SELECT %s FROM %s\n     ", join("\n    ,", @resultset), $table;
+    my $where = $self->where ? "WHERE " . $self->where : '';
+    my $statement = sprintf "SELECT %s FROM %s\n%s", join("\n    ,", @resultset), $table, $where;
     return $statement
 };
 

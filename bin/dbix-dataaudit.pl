@@ -5,12 +5,13 @@ use Getopt::Long;
 use Pod::Usage;
 
 use vars '$VERSION';
-$VERSION = '0.11';
+$VERSION = '0.12';
 
 GetOptions(
   'format|f:s' => \my $format,
-  'dsn:s'      => \my $dsn,
   'outname|o:s'=> \my $outname,
+  'where|w:s'  => \my $where,
+  'dsn:s'      => \my $dsn,
   'verbose|v'  => \my $verbose,
   'help|h'     => \my $display_help,
   'man'        => \my $display_man,
@@ -51,7 +52,11 @@ sub output_xls {
 };
 
 for my $table (@tables) {
-    my $audit = DBIx::DataAudit->audit( dsn => $dsn, table => $table, traits => \@traits );
+    my $audit = DBIx::DataAudit->audit(
+        dsn => $dsn,
+	table => $table,
+	traits => \@traits,
+	where  => $where );
     if ($verbose) {
         warn $audit->get_sql . "\n";
     };
@@ -72,7 +77,10 @@ dbix-audit.pl [options] tables traits
 Options:
 
   --format  output format (text,xls or html)
+  --outname name of the output file
+  --where   optional where clause
   --dsn     DBI dsn to connect to
+  --verbose give verbose progress information
   --help    help message
   --man     full documentation
 
@@ -91,6 +99,11 @@ Gives the DBI DSN
 =item B<--format FORMAT>
 
 Formats the output. Valid values are C<html> and C<text> (default).
+
+=item B<--where CLAUSE>
+
+Restrict the resultset by a where clause. The given string
+will be inserted verbatim after a C<WHERE> keyword.
 
 =back
 

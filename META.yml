@@ -1,8 +1,8 @@
 --- #YAML:1.0
 name:                DBIx-DataAudit
-version:             0.11
+version:             0.12
 abstract:            ~
-license:             ~
+license:             perl
 author:              ~
 generated_by:        ExtUtils::MakeMaker version 6.42
 distribution_type:   module
