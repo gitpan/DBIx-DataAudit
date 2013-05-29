@@ -4,7 +4,7 @@ use Carp qw(croak carp);
 use DBI;
 use parent 'Class::Accessor';
 use vars '$VERSION';
-$VERSION = '0.12';
+$VERSION = '0.13';
 
 =head1 NAME
 
@@ -38,7 +38,7 @@ about the columns in a single full table scan.
 You can specify which information is collected about every column by specifying the traits.
 The hierarchy of traits is as follows:
 
-  any < ordered < numeric 
+  any < ordered < numeric
                 < string
 
 The following traits are collected for every column by default:
@@ -400,10 +400,6 @@ If your database driver does not implement the C<< ->column_info >>
 method you are out of luck. A fatal error is raised by this method
 if C<< ->column_info >> does not return anything.
 
-For SQLite, L<DBD::SQLite::Amalgamation> v3.6.1.2 includes the patch from 
-L<Fey::Loader::SQLite>, so if you want to use DBIx::DataAudit with
-SQLite, consider upgrading to DBD::SQLite::Amalgamation.
-
 This method will raise warnings if it encounters a data type that
 it doesn't know yet. You can either patch the
 global variable C<%sql_type_map> to add the type or submit a patch
@@ -418,14 +414,23 @@ sub collect_column_info {
     if ($table =~ s/^(.*)\.//) {
         $schema = $1;
     };
-    my $sth = $self->dbh->column_info(undef,$schema,$table,$_);
+    my $sth = $self->dbh->column_info(undef,$schema,$table,undef);
     if (! $sth) {
-        croak "Couldn't collect column information for table '$table'. Does your DBD implement ->column_info?";
+        if( $schema ) {
+            $schema= "$schema.";
+        } else {
+            $schema= '';
+        };
+        croak "Couldn't collect column information for table '$schema$table'. Does your DBD implement ->column_info?";
     };
     my $info = $sth->fetchall_arrayref({});
 
+    if( !@$info ) {
+        croak "'$schema$table' seems to have no columns. Does your DBD implement ->column_info?";
+    };
+
     for my $i (@$info) {
-        my $sqltype = $i->{TYPE_NAME} = uc $i->{TYPE_NAME};
+        my $sqltype = uc $i->{TYPE_NAME};
 
         # Fix for Pg - convert enum types to "ENUM":
         if (exists $i->{pg_enum_values} && defined $i->{pg_enum_values}) {

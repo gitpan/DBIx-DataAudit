@@ -5,7 +5,7 @@ use Getopt::Long;
 use Pod::Usage;
 
 use vars '$VERSION';
-$VERSION = '0.12';
+$VERSION = '0.13';
 
 GetOptions(
   'format|f:s' => \my $format,
@@ -68,7 +68,7 @@ __END__
 
 =head1 NAME
 
-dbix-audit.pl - summary of column values for a table
+dbix-dataaudit.pl - summary of column values for a table
 
 =head1 SYNOPSIS
 

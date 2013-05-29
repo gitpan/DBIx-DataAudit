@@ -27,7 +27,7 @@ sub check {
       # only look at perl scripts, not sh scripts
       return if (m{blib/script/}xms && $content !~ m/\A \#![^\r\n]+?perl/xms);
 
-      my @version_lines = $content =~ m/ ( [^\n]* \$VERSION \s* = [^=] [^\r\n]* ) /gxms;
+      my @version_lines = $content =~ m/ ( [^\n]* \$VERSION \s* = [^=] [^\n]* ) /gxms;
       if (@version_lines == 0) {
             fail($_);
       }

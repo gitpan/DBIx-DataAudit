@@ -1,3 +1,6 @@
+0.13 20130529
+    + We now croak if we can't get the information on a column
+
 0.12 20090307
     + Added optional where clause to dbix-dataaudit.pl and DBIx::DataAudit
 
